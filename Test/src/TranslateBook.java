@@ -1,5 +1,3 @@
-package exeter;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -22,7 +20,8 @@ public class TranslateBook {
 			sc = new Scanner(file);
 			while (sc.hasNextLine()) {
 				String str = sc.nextLine().trim();
-				dictMap.put(str.substring(0, str.indexOf(",")).toLowerCase(), str.substring(str.indexOf(",") + 1, str.length()));
+				dictMap.put(str.substring(0, str.indexOf(",")).toLowerCase(),
+						str.substring(str.indexOf(",") + 1, str.length()));
 			}
 		} finally {
 			if (sc != null) {
@@ -35,12 +34,12 @@ public class TranslateBook {
 		FileWriter translatedText = null;
 		try {
 			File bookNeedToTranslate = new File("D:\\t8.shakespeare.txt");
-			translatedText = new FileWriter("D:\\t8.shakespeare.translated.txt");
+			translatedText = new FileWriter("t8.shakespeare.translated.txt");
 			sc = new Scanner(bookNeedToTranslate);
 			while (sc.hasNextLine()) {
 				String line = sc.nextLine();
-				String[] arr1 = line.split(" ");
-				for (String s : arr1) {
+				String[] arr = line.split(" ");
+				for (String s : arr) {
 					s = stripSpclChars(s.trim().toLowerCase());
 					if (dictMap.containsKey(s)) {
 						if (freqMap.containsKey(s)) {
@@ -65,16 +64,16 @@ public class TranslateBook {
 		// Creating CSV with words frequency
 		FileWriter writer = null;
 		try {
-			writer = new FileWriter("D:\\new.csv");
-			for (Map.Entry<String, String> r : dictMap.entrySet()) {
-				String origWord = r.getKey();
-				String frenchWord = r.getValue();
+			writer = new FileWriter("frequency.csv");
+			for (Map.Entry<String, String> itr : dictMap.entrySet()) {
+				String originalWord = itr.getKey();
+				String frenchWord = itr.getValue();
 				Integer freq = 0;
-				if (freqMap.containsKey(origWord)) {
-					freq = freqMap.get(origWord);
+				if (freqMap.containsKey(originalWord)) {
+					freq = freqMap.get(originalWord);
 
 				}
-				String csv = origWord + "," + frenchWord + "," + freq;
+				String csv = originalWord + "," + frenchWord + "," + freq;
 				writer.write(csv + "\n");
 			}
 		} finally {
@@ -83,13 +82,11 @@ public class TranslateBook {
 			}
 		}
 
-		System.out.println(System.currentTimeMillis() - start);
 		long afterUsedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-		System.out.println((afterUsedMem - beforeUsedMem) / (1024 * 1024));
 
-		// create file with time and memory
+		// create a performance file with time and memory
 		try {
-			writer = new FileWriter("D:\\perfomance.txt");
+			writer = new FileWriter("perfomance.txt");
 			long timeTaken = System.currentTimeMillis() - start;
 			writer.write("Time to process: 0 minutes " + (TimeUnit.MILLISECONDS.toSeconds(timeTaken)) + " seconds\n"
 					+ "Memory used: " + (afterUsedMem - beforeUsedMem) / (1024 * 1024) + " MB");
@@ -98,6 +95,7 @@ public class TranslateBook {
 				writer.close();
 			}
 		}
+		System.out.println("Completed.");
 	}
 
 	static String stripSpclChars(String s) {
@@ -114,5 +112,6 @@ public class TranslateBook {
 			}
 		}
 		return s.substring(0, index + 1);
+
 	}
 }
