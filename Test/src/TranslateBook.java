@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 public class TranslateBook {
 
 	public static void main(String[] args) throws IOException {
+		System.gc();
 		long beforeUsedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 		long start = System.currentTimeMillis();
 
@@ -21,33 +22,43 @@ public class TranslateBook {
 			while (sc.hasNextLine()) {
 				String str = sc.nextLine().trim();
 				dictMap.put(str.substring(0, str.indexOf(",")).toLowerCase(),
-						str.substring(str.indexOf(",") + 1, str.length()));
+						new String(str.substring(str.indexOf(",") + 1, str.length()).getBytes(), "UTF-8"));
 			}
 		} finally {
 			if (sc != null) {
 				sc.close();
 			}
 		}
-
 		// Find frequency of the english words
 		Map<String, Integer> freqMap = new LinkedHashMap<String, Integer>();
 		FileWriter translatedText = null;
 		try {
 			File bookNeedToTranslate = new File("D:\\t8.shakespeare.txt");
-			translatedText = new FileWriter("t8.shakespeare.translated.txt");
+			translatedText = new FileWriter("out/t8.shakespeare.translated.txt");
 			sc = new Scanner(bookNeedToTranslate);
 			while (sc.hasNextLine()) {
 				String line = sc.nextLine();
 				String[] arr = line.split(" ");
 				for (String s : arr) {
-					s = stripSpclChars(s.trim().toLowerCase());
-					if (dictMap.containsKey(s)) {
-						if (freqMap.containsKey(s)) {
-							freqMap.put(s, freqMap.get(s) + 1);
+					s = stripSpclChars(s.trim());
+					String lowerCase = s.toLowerCase();
+					if (dictMap.containsKey(lowerCase)) {
+						if (freqMap.containsKey(lowerCase)) {
+							freqMap.put(lowerCase, freqMap.get(lowerCase) + 1);
 						} else {
-							freqMap.put(s, 1);
+							freqMap.put(lowerCase, 1);
 						}
-						line = line.replaceAll("\\b(?i)" + s + "\\b", dictMap.get(s));
+						// Case handling
+						String frenchWord = dictMap.get(lowerCase);
+
+						if (s.equals(s.toUpperCase())) {
+							frenchWord = frenchWord.toUpperCase();
+						} else if (s.equals(s.toLowerCase())) {
+							frenchWord = frenchWord.toLowerCase();
+						} else if (Character.isUpperCase(s.charAt(0))) {
+							frenchWord = Character.toUpperCase(frenchWord.charAt(0)) + frenchWord.substring(1);
+						}
+						line = line.replaceAll("\\b(?i)" + lowerCase + "\\b", frenchWord);
 					}
 				}
 				translatedText.write(line + "\n");
@@ -64,7 +75,7 @@ public class TranslateBook {
 		// Creating CSV with words frequency
 		FileWriter writer = null;
 		try {
-			writer = new FileWriter("frequency.csv");
+			writer = new FileWriter("out/frequency.csv");
 			for (Map.Entry<String, String> itr : dictMap.entrySet()) {
 				String originalWord = itr.getKey();
 				String frenchWord = itr.getValue();
@@ -86,7 +97,7 @@ public class TranslateBook {
 
 		// create a performance file with time and memory
 		try {
-			writer = new FileWriter("perfomance.txt");
+			writer = new FileWriter("out/perfomance.txt");
 			long timeTaken = System.currentTimeMillis() - start;
 			writer.write("Time to process: 0 minutes " + (TimeUnit.MILLISECONDS.toSeconds(timeTaken)) + " seconds\n"
 					+ "Memory used: " + (afterUsedMem - beforeUsedMem) / (1024 * 1024) + " MB");
